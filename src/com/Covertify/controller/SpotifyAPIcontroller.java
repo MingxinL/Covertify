@@ -3,6 +3,7 @@ package com.Covertify.controller;
 import org.apache.hc.core5.http.ParseException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.SessionAttributes;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.ModelAndView;
@@ -12,6 +13,7 @@ import com.wrapper.spotify.SpotifyHttpManager;
 import com.wrapper.spotify.exceptions.SpotifyWebApiException;
 import com.wrapper.spotify.model_objects.credentials.ClientCredentials;
 import com.wrapper.spotify.model_objects.specification.AlbumSimplified;
+import com.wrapper.spotify.model_objects.specification.Image;
 import com.wrapper.spotify.model_objects.specification.Paging;
 import com.wrapper.spotify.requests.authorization.authorization_code.AuthorizationCodeUriRequest;
 import com.wrapper.spotify.requests.authorization.client_credentials.ClientCredentialsRequest;
@@ -23,8 +25,10 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
 
 @Controller
+@SessionAttributes("AlbumCoverURLs")
 public class SpotifyAPIcontroller {
 	
 	String clientId = "dcf0db8ebbe842028405deca41bb038b"; // Your client id
@@ -79,7 +83,7 @@ public class SpotifyAPIcontroller {
     
     
     @GetMapping("search")
-    public void search(HttpServletRequest request, HttpServletResponse response) throws ParseException, SpotifyWebApiException, IOException {
+    public ModelAndView search(HttpServletRequest request, HttpServletResponse response) throws ParseException, SpotifyWebApiException, IOException {
 //    	String code = (String) request.getAttribute("code");
 //    	System.out.print(code);
 //        String client_id = "dcf0db8ebbe842028405deca41bb038b"; // Your client id
@@ -121,7 +125,7 @@ public class SpotifyAPIcontroller {
         final ClientCredentials clientCredentials = clientCredentialsRequest.execute();
         spotifyApi.setAccessToken(clientCredentials.getAccessToken());
       
-        final String q = "Abba";
+        final String q = request.getParameter("search");
         final SearchAlbumsRequest searchAlbumsRequest = spotifyApi.searchAlbums(q)
 //                  .market(CountryCode.SE)
 //                  .limit(10)
@@ -131,7 +135,21 @@ public class SpotifyAPIcontroller {
         System.out.println("searchAlbumsRequest.toString(): "+ searchAlbumsRequest.toString());
         final Paging<AlbumSimplified> albumSimplifiedPaging = searchAlbumsRequest.execute();
 
-           System.out.println("Search Result: " + albumSimplifiedPaging.toString());
+        System.out.println("Search Result: " + albumSimplifiedPaging.toString());
+        
+        final ArrayList<String> CoverURLs = new ArrayList<String>();
+        for (AlbumSimplified item : albumSimplifiedPaging.getItems()) {
+        	// add 640 size cover image item
+        	CoverURLs.add(item.getImages()[0].getUrl());
+        }
+        
+        
+       
+		ModelAndView modelAndView = new ModelAndView();
+		modelAndView.addObject("AlbumCoverURLs", CoverURLs);
+		modelAndView.setViewName("callback");
+		
+        return modelAndView;
     }
 }
 
