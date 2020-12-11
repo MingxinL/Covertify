@@ -1,3 +1,5 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
 <html>
 <head>
 <title>Covertify</title>
@@ -6,6 +8,22 @@ body {
 	background-image: url('https://cdn.crunchify.com/bg.png');
 }
 </style>
+
+<script>
+	window.onload = function() {
+		// run code
+		var query = new URLSearchParams(window.location.search);
+		var code = "";
+		for(var value of query.keys()) {
+			if (value == "code") {
+				code = query.get(value);
+			}
+		 }
+		console.log(code);
+		document.getElementById("code").value = code;
+	};
+</script>
+
 </head>
 <body>
 	Logged in!
@@ -13,14 +31,11 @@ body {
 	<form action="search">
 	  <label for="search">search:</label><br>
 	  <input type="text" id="fname" name="search" value="Enter Album Keyword..."><br>
+	  <input type="hidden" name="code" id="code" value="" >
 	  <input type="submit" value="Submit">
 	</form> 
-	<p>Search Result: ${AlbumCoverURLs}<p/>
-	
-<!-- 	<table id="coverTable" border="1">
-		<tr></tr>
-	</table> -->
-
+	<p>${cookie['userName'].value}</p>
+	<img src=${cookie['userImage'].value} />
 	<script>
 		var URLList="${AlbumCoverURLs}".slice(1, -1);
 		URLList = URLList.split(", ");
@@ -29,17 +44,17 @@ body {
 		
 		for(var i = 0; i < URLList.length; i++) {
 			/* TODO: add infinite scroll */
-/* 		    var row=document.getElementById("coverTable").rows[0];
-		    var x=row.insertCell(-1); */
-		    
 		    var img = document.createElement('img');
 		    console.log(${AlbumCoverURLs[i]});
 		    img.src = URLList[i];
 		    img.height = 200;
 		    img.width = 200;
 		    document.body.appendChild(img);
-/* 		    x.appendChild(img); */
 		}
 	</script>
 </body>
 </html>
+
+
+
+
