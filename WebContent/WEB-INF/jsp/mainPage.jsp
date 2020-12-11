@@ -3,11 +3,7 @@
 <html>
 <head>
 <title>Covertify</title>
-<style type="text/css">
-body {
-	background-image: url('https://cdn.crunchify.com/bg.png');
-}
-</style>
+<link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/Resources/CSS/mainPage.css"/>
 
 <script>
 	window.onload = function() {
