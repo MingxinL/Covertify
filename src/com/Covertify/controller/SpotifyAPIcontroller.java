@@ -50,7 +50,7 @@ public class SpotifyAPIcontroller {
        String code = request.getParameter("code");
 
        System.out.println("code: " + code);
-       
+   
        // TODO: these 2 lines can only be triggered once
        AuthorizationCodeRequest authorizationCodeRequest = spotifyApi.authorizationCode(code)
        	          .build();
@@ -68,6 +68,8 @@ public class SpotifyAPIcontroller {
        	    .build();
        User user = getCurrentUsersProfileRequest.execute();
        System.out.println("Display name: " + user.getDisplayName());
+       
+       System.out.println("User id+++++++++++++++++++++++++=" + user.getId());
        
        Cookie cookie = new Cookie("userName", URLEncoder.encode(user.getDisplayName(), "UTF-8"));
        Cookie cookie2 = new Cookie("userImage", user.getImages()[0].getUrl());
@@ -130,6 +132,16 @@ public class SpotifyAPIcontroller {
 		
         return modelAndView;
     }
+    
+    
+    @GetMapping("add")
+    public void addAlbum(HttpServletRequest request, HttpServletResponse response) throws ParseException, SpotifyWebApiException, IOException {
+ 
+        String q = (String) request.getParameter("album");
+        System.out.print("album url :" + q);
+		
+    }
+    
 }
 
 
