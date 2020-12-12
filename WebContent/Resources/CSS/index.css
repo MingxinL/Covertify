@@ -1,0 +1,6 @@
+@charset "UTF-8";
+
+body {
+	background-image: url('../Assets/background-clouds-med.jpg');
+	background-size: 1000px 1000px;
+}
