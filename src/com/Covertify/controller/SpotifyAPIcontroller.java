@@ -1,13 +1,21 @@
 package com.Covertify.controller;
 
 import org.apache.hc.core5.http.ParseException;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.cfg.Configuration;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.SessionAttributes;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.ModelAndView;
 
+import com.Covertify.dao.CustomerDao;
+import com.Covertify.hibernate.entity.Album;
+import com.Covertify.hibernate.entity.Customer;
 import com.wrapper.spotify.SpotifyApi;
 import com.wrapper.spotify.SpotifyHttpManager;
 import com.wrapper.spotify.exceptions.SpotifyWebApiException;
@@ -19,6 +27,10 @@ import com.wrapper.spotify.requests.authorization.authorization_code.Authorizati
 import com.wrapper.spotify.requests.authorization.authorization_code.AuthorizationCodeUriRequest;
 import com.wrapper.spotify.requests.data.search.simplified.SearchAlbumsRequest;
 import com.wrapper.spotify.requests.data.users_profile.GetCurrentUsersProfileRequest;
+
+import antlr.collections.List;
+
+import org.springframework.ui.Model;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -32,7 +44,10 @@ import java.util.ArrayList;
 @Controller
 @SessionAttributes("AlbumCoverURLs")
 public class SpotifyAPIcontroller {
-	
+
+	@Autowired
+	private CustomerDao customerDao;
+	SessionFactory factory;
 	String clientId = "dcf0db8ebbe842028405deca41bb038b"; // Your client id
 	String clientSecret = "9592ddfe70634b65b9771c37a3f816af";
     URI redirect_uri = SpotifyHttpManager.makeUri("http://localhost:8080/Covertify/callback"); // Your redirect uri
@@ -42,6 +57,17 @@ public class SpotifyAPIcontroller {
             .setRedirectUri(redirect_uri)
             .build();
     
+    
+    @RequestMapping("/list")
+    public void listCustomer() {
+  
+    	
+    	for(Customer customer : customerDao.getCustomers()) {
+			System.out.print(customer.getId());
+			
+		}
+    }
+	
     @RequestMapping("/callback")
     public ModelAndView signin(HttpServletRequest request,  HttpServletResponse response) throws ParseException, SpotifyWebApiException, IOException{
        	System.out.println("request.getQueryString(): " + request.getQueryString());
@@ -69,12 +95,14 @@ public class SpotifyAPIcontroller {
        User user = getCurrentUsersProfileRequest.execute();
        System.out.println("Display name: " + user.getDisplayName());
        
-       System.out.println("User id+++++++++++++++++++++++++=" + user.getId());
+       
        
        Cookie cookie = new Cookie("userName", URLEncoder.encode(user.getDisplayName(), "UTF-8"));
        Cookie cookie2 = new Cookie("userImage", user.getImages()[0].getUrl());
+       Cookie cookie3 = new Cookie("userId",user.getId());
        response.addCookie(cookie);
        response.addCookie(cookie2);
+       response.addCookie(cookie3);
 
        return new ModelAndView("mainPage");
     }
@@ -121,29 +149,169 @@ public class SpotifyAPIcontroller {
         System.out.println("Search Result: " + albumSimplifiedPaging.toString());
         
         final ArrayList<String> CoverURLs = new ArrayList<String>();
+        ArrayList<Album> albumList = new ArrayList<>();
         for (AlbumSimplified item : albumSimplifiedPaging.getItems()) {
         	// add 640 size cover image item
         	CoverURLs.add(item.getImages()[0].getUrl());
+        	Album albumItem = new Album();
+        	albumItem.setId(item.getId());
+        	albumItem.setImage(item.getImages()[0].getUrl());
+        	albumItem.setName(item.getName());
+        	albumList.add(albumItem);
         }
-        
+        System.out.println("=================================");
+        System.out.println("albumList size: "+ albumList.size());
+        System.out.println("=================================");
 		ModelAndView modelAndView = new ModelAndView();
 		modelAndView.addObject("AlbumCoverURLs", CoverURLs);
 		modelAndView.setViewName("mainPage");
+		modelAndView.addObject("albumList",albumList);
 		
         return modelAndView;
     }
     
     
-    @GetMapping("add")
-    public void addAlbum(HttpServletRequest request, HttpServletResponse response) throws ParseException, SpotifyWebApiException, IOException {
+    @GetMapping("album/add")
+    public String addAlbum(@RequestParam("albumId") String theId, @RequestParam("albumName") String theName, @RequestParam("albumImage") String theImage){
  
-        String q = (String) request.getParameter("album");
-        System.out.print("album url :" + q);
+    	// get the album from spotify
+    	System.out.println("add id "+ theId);
+    	System.out.println("add name "+ theName);
+    	System.out.println("add Image "+ theImage);
+    	
+//    	Album theCustomer = customerService.getCustomer(theId);	
+//    			
+//      
+    	
+    	// create session factory
+    			SessionFactory factory = new Configuration()
+    			.configure("hibernate.cfg.xml")
+    			.addAnnotatedClass(Album.class)
+    			.addAnnotatedClass(Customer.class)
+    			.buildSessionFactory();
+    			
+    			// create session
+    			Session session = factory.getCurrentSession();
+    			
+    			try {			
+    				
+    				// start a transaction
+    				session.beginTransaction();
+    				
+    				
+    							
+    				// if album exists, not create a album
+    				Album tempAlbum = session.get(Album.class,theId);
+    				if (tempAlbum == null) {
+    					tempAlbum = new Album(theId,theName,theImage);
+    				}
+   							
+    				// save the album
+    				System.out.println("\nSaving the album...");
+    				session.save(tempAlbum);
+    				System.out.println("Saved the album: " + tempAlbum);
+//    				
+//    				// get the customers
+    				String customerId = "ff8080817653a0b5017653a0b6d20001";
+    				Customer tempCustomer = session.get(Customer.class, customerId);
+    				
+    				// check if the customers have add album before
+//    				
+    				boolean hasAddBefore = false;
+    				for(Album album : tempCustomer.getAlbums()) {
+    					if (album.getId()==theId) {
+    						hasAddBefore = true;
+    					}
+    					
+    				}
+    				if (!hasAddBefore) {
+					// add customers to the album
+    				tempAlbum.addCustomer(tempCustomer);
+    				
+    				
+//    				// save the customers
+    				System.out.println("\nSaving customers ...");
+    				session.save(tempCustomer);
+    				System.out.println("Saved customers: " + tempAlbum.getCustomers());
+    				
+    				}
+    				
+    				
+    				
+
+    				
+
+    				
+    				
+//    				commit transaction
+    				session.getTransaction().commit();
+    				
+    				System.out.println("Done!");
+    			}
+    			finally {
+    				
+    				// add clean up code
+    				session.close();
+    				
+    				factory.close();
+    			}
+    	
+    	
+//    			
+//    	// send over to our form
+    	return "addDBsuccess";
+
 		
     }
     
-}
+    
+    @GetMapping("album/readAlbums") 
 
+    public ModelAndView readAlbum(){
+    	
+    	SessionFactory factory = new Configuration()
+    			.configure("hibernate.cfg.xml")
+    			.addAnnotatedClass(Album.class)
+    			.addAnnotatedClass(Customer.class)
+    			.buildSessionFactory();
+    			
+ 
+    	Session session = factory.getCurrentSession();
+    	String customerId = "ff8080817653a0b5017653a0b6d20001";
+    	
+    	
+    	
+    	ModelAndView modelAndView = new ModelAndView();
+		
+		
+		
+		try {			
+			
+			// start a transaction
+			session.beginTransaction();
+			
+			Customer tempCustomer = session.get(Customer.class, customerId);
+			
+			modelAndView.addObject("albumList",tempCustomer.getAlbums());
+			modelAndView.setViewName( "CustomerAlbum");
+			
+			
+//			commit transaction
+			session.getTransaction().commit();
+			
+			// add clean up code
+			session.close();
+	
+		}catch(Exception e){
+			System.out.println(e);
+		}
+
+		
+		 return modelAndView;
+		
+       
+    }
+}
 
 
 
