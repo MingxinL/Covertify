@@ -46,15 +46,18 @@ body {
 			/* TODO: add infinite scroll */
 			var div = document.createElement('div');
 		    var img = document.createElement('img');
-		    var h1 =  document.createElement('h1');
-		    h1.innerHTML = "CLICK ME";
+		    var a  = document.createElement('a');
+		    a.href="http://localhost:8080/Covertify/add?"+"album="+URLList[i];
+		    a.innerHTML = "add it";
 		    console.log(${AlbumCoverURLs[i]});
 		    img.src = URLList[i];
 		    img.height = 200;
 		    img.width = 200;
-		    document.body.appendChild(div);   
-		    document.body.div.appendChild(img);
-		    document.body.div.appenChild(h1);
+		   
+		   
+		    div.appendChild(img);
+		    div.appendChild(a);
+		    document.body.appendChild(div);
 		}
 	</script>
 </body>

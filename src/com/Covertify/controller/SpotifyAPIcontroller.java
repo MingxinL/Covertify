@@ -132,6 +132,16 @@ public class SpotifyAPIcontroller {
 		
         return modelAndView;
     }
+    
+    
+    @GetMapping("add")
+    public void addAlbum(HttpServletRequest request, HttpServletResponse response) throws ParseException, SpotifyWebApiException, IOException {
+ 
+        String q = (String) request.getParameter("album");
+        System.out.print("album url :" + q);
+		
+    }
+    
 }
 
 
