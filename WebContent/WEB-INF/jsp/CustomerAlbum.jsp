@@ -10,19 +10,19 @@
 <body>
 
 		<c:forEach var="tempAlbum" items="${albumList}">
-				
-						<!-- construct an "add" link with album id -->
-						<c:url var="addLink" value="/album/add">
+					
+						<!-- construct an "delete" link with album id -->
+						<c:url var="deleteLink" value="/album/delete">
 							<c:param name= "albumId" value="${tempAlbum.id}" />
-							<c:param name= "albumName" value="${tempAlbum.name}" />
-							<c:param name= "albumImage" value="${tempAlbum.image}" />
 						</c:url>
 				
 					<tr>
 		
 						<td> ${tempAlbum.name} </td>
 						<td> <img src=${tempAlbum.image} /> </td>
-						<td> <a href = "${addLink}">Add</a></td>
+						<td> <a href = "${deleteLink}"
+								onclick = "if (!(confirm('Are you sure you want to delete this album'))) return false"
+						>delete</a></td>
 					</tr>
 				
 		</c:forEach>

@@ -23,6 +23,9 @@
 
 		<!-- Set the current session context -->
 		<property name="current_session_context_class">thread</property>
+		
+		<mapping class="com.Covertify.hibernate.entity.Customer"/>
+		<mapping class="com.Covertify.hibernate.entity.Album" />
  
     </session-factory>
 

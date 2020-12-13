@@ -1,58 +1,54 @@
 package com.Covertify.dao;
-
 import java.util.List;
 
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.Covertify.hibernate.entity.Album;
 import com.Covertify.hibernate.entity.Customer;
 
+public class CustomerDAO extends DAO {
 
-
-@Repository
-public class CustomerDao{
-
-	// need to inject the session factory
-	@Autowired
-	private SessionFactory sessionFactory;
+//		public Customer checkLoginbefore(String CustomerId) {
+//			
+//			String hqlQuery = "FROM Customer WHERE id=: id";
+//			Query query = getSession().createQuery(hqlQuery);
+//			query.setString("id",CustomerId);
+//			
+//			return (Customer) query.uniqueResult();
+//					
+//		}
 	
-	@Transactional
-	public List<Customer> getCustomers() {
-		
-		// get the current hibernate session
-		Session currentSession = sessionFactory.getCurrentSession();
-				
-		// create a query
-		Query<Customer> theQuery = 
-				currentSession.createQuery("from Customer", Customer.class);
-		
-		// execute query and get result list
-		List<Customer> customers = theQuery.getResultList();
-				
-		// return the results		
-		return customers;
+	public void saveCustomer(Customer customer) {
+		begin();
+		getSession().save(customer);
+		commit();
 	}
 	
-//	@Transactional
-//	public List<Album> getCustomersAlbum() {
-//		
-//		String customerId = "ff8080817653a0b5017653a0b6d20001";
-//		// get the current hibernate session
-//		Session currentSession = sessionFactory.getCurrentSession();
-//				
-//		Query<Customer> theQuery = 
-//				currentSession.createQuery("from Customer c where c.id = ? ");
-//		theQuery.setString(0,customerId);
-//		
-//		// execute query and get result list
-//		List<Customer> customers = theQuery.getResultList();
-//				
-//		// return the results		
-//		return customers;
-//	}
+	
+	public boolean Exist(String customerId) {
+		Customer tempCustomer = getSession().get(Customer.class,customerId);
+		if (tempCustomer == null) {
+			return false;
+		}
+		return true;
+	}
+	
+	public Customer getCustomers(String customerId) {
+		return getSession().get(Customer.class,customerId);
+	}
+	
+	public List<Album> getAlbums(String customerId) {
+		Customer tempCustomer = getSession().get(Customer.class,customerId);
+		return tempCustomer.getAlbums();
+		
+	}
+	
+	public void deleteAlbums(String customerId, String albumId) {
+		begin();
+		Album tempAlbum = getSession().get(Album.class,albumId);
+		Customer tempCustomer = getSession().get(Customer.class,customerId);
+		tempAlbum.deleteCustomers(tempCustomer);	
+		commit();
+		
+	}
 }

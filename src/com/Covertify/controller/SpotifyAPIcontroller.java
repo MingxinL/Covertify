@@ -13,7 +13,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.ModelAndView;
 
-import com.Covertify.dao.CustomerDao;
+import com.Covertify.dao.AlbumDAO;
+import com.Covertify.dao.CustomerDAO;
 import com.Covertify.hibernate.entity.Album;
 import com.Covertify.hibernate.entity.Customer;
 import com.wrapper.spotify.SpotifyApi;
@@ -45,9 +46,6 @@ import java.util.ArrayList;
 @SessionAttributes("AlbumCoverURLs")
 public class SpotifyAPIcontroller {
 
-	@Autowired
-	private CustomerDao customerDao;
-	SessionFactory factory;
 	String clientId = "dcf0db8ebbe842028405deca41bb038b"; // Your client id
 	String clientSecret = "9592ddfe70634b65b9771c37a3f816af";
     URI redirect_uri = SpotifyHttpManager.makeUri("http://localhost:8080/Covertify/callback"); // Your redirect uri
@@ -57,16 +55,7 @@ public class SpotifyAPIcontroller {
             .setRedirectUri(redirect_uri)
             .build();
     
-    
-    @RequestMapping("/list")
-    public void listCustomer() {
-  
-    	
-    	for(Customer customer : customerDao.getCustomers()) {
-			System.out.print(customer.getId());
-			
-		}
-    }
+   
 	
     @RequestMapping("/callback")
     public ModelAndView signin(HttpServletRequest request,  HttpServletResponse response) throws ParseException, SpotifyWebApiException, IOException{
@@ -97,13 +86,16 @@ public class SpotifyAPIcontroller {
        
        
        
+       
        Cookie cookie = new Cookie("userName", URLEncoder.encode(user.getDisplayName(), "UTF-8"));
        Cookie cookie2 = new Cookie("userImage", user.getImages()[0].getUrl());
        Cookie cookie3 = new Cookie("userId",user.getId());
+       
+
        response.addCookie(cookie);
        response.addCookie(cookie2);
        response.addCookie(cookie3);
-
+     
        return new ModelAndView("mainPage");
     }
 	
@@ -174,87 +166,37 @@ public class SpotifyAPIcontroller {
     @GetMapping("album/add")
     public String addAlbum(@RequestParam("albumId") String theId, @RequestParam("albumName") String theName, @RequestParam("albumImage") String theImage){
  
-    	// get the album from spotify
-    	System.out.println("add id "+ theId);
-    	System.out.println("add name "+ theName);
-    	System.out.println("add Image "+ theImage);
-    	
-//    	Album theCustomer = customerService.getCustomer(theId);	
-//    			
-//      
-    	
-    	// create session factory
-    			SessionFactory factory = new Configuration()
-    			.configure("hibernate.cfg.xml")
-    			.addAnnotatedClass(Album.class)
-    			.addAnnotatedClass(Customer.class)
-    			.buildSessionFactory();
-    			
-    			// create session
-    			Session session = factory.getCurrentSession();
-    			
-    			try {			
+   				
+		AlbumDAO adao = new AlbumDAO();
+		CustomerDAO cdao = new CustomerDAO();
+		
+		Album tempAlbum = null;
+		if (!adao.Exist(theId)) {
+			tempAlbum = new Album(theId,theName,theImage);
+			adao.saveAlbums(tempAlbum);
+		} else {
+			tempAlbum = adao.getAlbums(theId);
+		}
+		
+		// get the customers
+		String customerId = "ff8080817653a0b5017653a0b6d20001";
+		
+		Customer tempCustomer = cdao.getCustomers(customerId);
+		
+		// check if the customers have add album before    				
+		boolean hasAddBefore = false;
+		for(Album album : tempCustomer.getAlbums()) {
+			if (album.getId()==theId) {
+				hasAddBefore = true;
+			}
+			
+		}
+		if (!hasAddBefore) {
+		// add customers to the album
+		adao.addCustomer(tempAlbum, tempCustomer);
+		
+		}
     				
-    				// start a transaction
-    				session.beginTransaction();
-    				
-    				
-    							
-    				// if album exists, not create a album
-    				Album tempAlbum = session.get(Album.class,theId);
-    				if (tempAlbum == null) {
-    					tempAlbum = new Album(theId,theName,theImage);
-    				}
-   							
-    				// save the album
-    				System.out.println("\nSaving the album...");
-    				session.save(tempAlbum);
-    				System.out.println("Saved the album: " + tempAlbum);
-//    				
-//    				// get the customers
-    				String customerId = "ff8080817653a0b5017653a0b6d20001";
-    				Customer tempCustomer = session.get(Customer.class, customerId);
-    				
-    				// check if the customers have add album before
-//    				
-    				boolean hasAddBefore = false;
-    				for(Album album : tempCustomer.getAlbums()) {
-    					if (album.getId()==theId) {
-    						hasAddBefore = true;
-    					}
-    					
-    				}
-    				if (!hasAddBefore) {
-					// add customers to the album
-    				tempAlbum.addCustomer(tempCustomer);
-    				
-    				
-//    				// save the customers
-    				System.out.println("\nSaving customers ...");
-    				session.save(tempCustomer);
-    				System.out.println("Saved customers: " + tempAlbum.getCustomers());
-    				
-    				}
-    				
-    				
-    				
-
-    				
-
-    				
-    				
-//    				commit transaction
-    				session.getTransaction().commit();
-    				
-    				System.out.println("Done!");
-    			}
-    			finally {
-    				
-    				// add clean up code
-    				session.close();
-    				
-    				factory.close();
-    			}
     	
     	
 //    			
@@ -269,45 +211,33 @@ public class SpotifyAPIcontroller {
 
     public ModelAndView readAlbum(){
     	
-    	SessionFactory factory = new Configuration()
-    			.configure("hibernate.cfg.xml")
-    			.addAnnotatedClass(Album.class)
-    			.addAnnotatedClass(Customer.class)
-    			.buildSessionFactory();
-    			
- 
-    	Session session = factory.getCurrentSession();
-    	String customerId = "ff8080817653a0b5017653a0b6d20001";
-    	
-    	
-    	
-    	ModelAndView modelAndView = new ModelAndView();
-		
-		
-		
-		try {			
-			
-			// start a transaction
-			session.beginTransaction();
-			
-			Customer tempCustomer = session.get(Customer.class, customerId);
-			
-			modelAndView.addObject("albumList",tempCustomer.getAlbums());
-			modelAndView.setViewName( "CustomerAlbum");
-			
-			
-//			commit transaction
-			session.getTransaction().commit();
-			
-			// add clean up code
-			session.close();
-	
-		}catch(Exception e){
-			System.out.println(e);
-		}
 
+ 
+  
+    	String customerId = "ff8080817653a0b5017653a0b6d20001";
+    	ModelAndView modelAndView = new ModelAndView();
+    	CustomerDAO cdao = new CustomerDAO();
+    	modelAndView.addObject("albumList",cdao.getAlbums(customerId));
+    	modelAndView.setViewName( "CustomerAlbum");
 		
-		 return modelAndView;
+    	return modelAndView;
+		
+       
+    }
+    
+    
+    @GetMapping("album/delete") 
+
+    public void deleteAlbum(@RequestParam("albumId") String theId,HttpServletResponse response) throws IOException{
+    	
+
+ 
+  
+    	String customerId = "ff8080817653a0b5017653a0b6d20001";
+    	CustomerDAO cdao = new CustomerDAO();
+    	cdao.deleteAlbums (customerId, theId);
+		
+    	response.sendRedirect("http://localhost:8080/Covertify/album/readAlbums");
 		
        
     }
