@@ -90,6 +90,12 @@ public class Album {
 	public void setCustomers(List<Customer> customers) {
 		this.customers = customers;
 	}
+	
+	public void deleteCustomers(Customer theCustomer) {
+		if (customers.contains(theCustomer)) {
+			customers.remove(theCustomer);
+		}
+	}
 
 	// add a convenience method
 	
