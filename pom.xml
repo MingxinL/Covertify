@@ -125,6 +125,12 @@
 		    <version>0.9.5.1</version>
 		</dependency>
 		
+		<!-- yan needs this, but liang doesn't, why? -->
+		<dependency>
+		    <groupId>mysql</groupId>
+		    <artifactId>mysql-connector-java</artifactId>
+		    <version>8.0.17</version>
+		</dependency>
 		
 		
 	</dependencies>

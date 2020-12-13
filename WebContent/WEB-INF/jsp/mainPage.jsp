@@ -25,6 +25,7 @@
 </head>
 <body>
 	Logged in!
+	<img alt="Covertify-Logo" src="Resources/Assets/Covertify.png" width=30%>
 	<a href="album/readAlbums">read albums before</a>
 	<form action="search">
 	  <label for="search">search:</label><br>
@@ -32,8 +33,8 @@
 	  <input type="hidden" name="code" id="code" value="" >
 	  <input type="submit" value="Submit">
 	</form> 
-	<p>${cookie['userName'].value}</p>
-	<img src=${cookie['userImage'].value} />
+	<p>${user.getDisplayName()}</p>
+	<img src=${user.getImages()[0].getUrl()} />
 		<!-- loop over and print our customers -->
 				<c:forEach var="tempAlbum" items="${albumList}">
 				
@@ -47,7 +48,7 @@
 					<tr>
 		
 						<td> ${tempAlbum.name} </td>
-						<td> <img src=${tempAlbum.image} /> </td>
+						<td> <img src=${tempAlbum.image} width=25% /> </td>
 						<td> <a href = "${addLink}">Add</a></td>
 					</tr>
 				
