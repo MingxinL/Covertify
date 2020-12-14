@@ -36,6 +36,7 @@ import antlr.collections.List;
 import org.springframework.ui.Model;
 import org.springframework.ui.ModelMap;
 
+import javax.servlet.RequestDispatcher;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -91,7 +92,7 @@ public class SpotifyAPIcontroller {
             model.addAttribute("user", getCurrentUsersProfileRequest.execute());
             model.addAttribute("spotifyApi", spotifyApi);
 //            accessToken = authorizationCodeCredentials.getAccessToken();
-        				System.out.println("accessToken: " + (String) model.getAttribute("accessToken"));
+        	System.out.println("accessToken: " + (String) model.getAttribute("accessToken"));
             
 //            Cookie cookie = new Cookie("userName", URLEncoder.encode(user.getDisplayName(), "UTF-8"));
 //            Cookie cookie2 = new Cookie("userImage", user.getImages()[0].getUrl());
@@ -179,9 +180,7 @@ public class SpotifyAPIcontroller {
 	        	albumItem.setName(item.getName());
 	        	albumList.add(albumItem);
 	        }
-	        System.out.println("=================================");
-	        System.out.println("albumList size: "+ albumList.size());
-	        System.out.println("=================================");
+	       
 			
 			modelAndView.addObject("AlbumCoverURLs", CoverURLs);
 			modelAndView.addObject("albumList",albumList);
@@ -199,16 +198,20 @@ public class SpotifyAPIcontroller {
 		CustomerDAO cdao = new CustomerDAO();
 		
 		Album tempAlbum = null;
-		if (!adao.Exist(theId)) {
-			tempAlbum = new Album(theId,theName,theImage);
+		System.out.println("!!!!!!!!!!!!!!!!");
+		System.out.println(theId);
+		System.out.println(adao.Exist(theId));
+		System.out.println("!!!!!!!!!!!!!!!!");
+		if (adao.Exist(theId)) {
+			adao.AddTime(theId);	
+		} else{
+			tempAlbum = new Album(theId,theName,theImage,1);
 			adao.saveAlbums(tempAlbum);
-		} else {
-			tempAlbum = adao.getAlbums(theId);
 		}
 		
 		// get the customers
-//		String customerId = "ff8080817653a0b5017653a0b6d20001"; // Liang
-		String customerId = "21z5ocxxaci7ehx26cob7lhey"; // Jiao
+		String customerId = "0qtsgtarmv1zbif195n1df6tu"; // Liang
+		//String customerId = "21z5ocxxaci7ehx26cob7lhey"; // Jiao
 		
 		Customer tempCustomer = cdao.getCustomers(customerId);
 		
@@ -222,7 +225,7 @@ public class SpotifyAPIcontroller {
 		if (!hasAddBefore) {
 			// add customers to the album
 			adao.addCustomer(tempAlbum, tempCustomer);
-		}
+		} 
 
 //    	// send over to our form
     	return "addDBsuccess";
@@ -233,10 +236,11 @@ public class SpotifyAPIcontroller {
     @GetMapping("album/readAlbums") 
     public ModelAndView readAlbum(){
     	
-//    	String customerId = "ff8080817653a0b5017653a0b6d20001"; // Liang
-    	String customerId = "21z5ocxxaci7ehx26cob7lhey"; //jiao
+    	String customerId = "0qtsgtarmv1zbif195n1df6tu"; // Liang
+    	//String customerId = "21z5ocxxaci7ehx26cob7lhey"; //jiao
     	ModelAndView modelAndView = new ModelAndView();
     	CustomerDAO cdao = new CustomerDAO();
+   
     	modelAndView.addObject("albumList",cdao.getAlbums(customerId));
     	modelAndView.setViewName( "CustomerAlbum");
 		
@@ -246,14 +250,26 @@ public class SpotifyAPIcontroller {
     
     
     @GetMapping("album/delete") 
-    public void deleteAlbum(@RequestParam("albumId") String theId,HttpServletResponse response) throws IOException{
+    public void deleteAlbum(@RequestParam("albumId") String theId,HttpServletRequest request,HttpServletResponse response) throws IOException{
     	
-//    	String customerId = "ff8080817653a0b5017653a0b6d20001"; // Liang
-    	String customerId = "21z5ocxxaci7ehx26cob7lhey"; //jiao
+    	String customerId = "0qtsgtarmv1zbif195n1df6tu"; // Liang
+    	//String customerId = "21z5ocxxaci7ehx26cob7lhey"; //jiao
     	CustomerDAO cdao = new CustomerDAO();
     	cdao.deleteAlbums (customerId, theId);
 		
     	response.sendRedirect("http://localhost:8080/Covertify/album/readAlbums");
+    	
+   
+  //  	request.setAttribute("albumList",cdao.getAlbums(customerId));
+//		RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/jsp/CustomerAlbum.jsp");
+//		
+//    	//response.forward("http://localhost:8080/Covertify/album/readAlbums");
+//		try {
+//			rd.forward(request, response);
+//		} catch (ServletException | IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
     }
 }
 

@@ -60,7 +60,7 @@ public class CreateCustomerAndAlbums {
 			//check
 			
 			// get the customer Micy from database
-			String customerId = "ff8080817653a0b5017653a0b6d20001";
+			String customerId = "ff80808176";
 			Customer tempCustomer = session.get(Customer.class, customerId);
 //			
 			System.out.println("\nLoad customer" + tempCustomer);
