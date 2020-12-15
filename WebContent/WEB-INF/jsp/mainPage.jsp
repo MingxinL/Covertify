@@ -27,6 +27,7 @@
 	Logged in!
 	<img alt="Covertify-Logo" src="Resources/Assets/Covertify.png" width=30%>
 	<a href="album/readAlbums">read albums before</a>
+	<a href="logout">log out</a>
 	<form action="search">
 	  <label for="search">search:</label><br>
 	  <input type="text" id="fname" name="search" value="Enter Album Keyword..."><br>

@@ -44,7 +44,22 @@ public class Album {
 	@Column(name="image")
 	private String image;
 	
+	@Column(name="time")
+	private Integer time;
+	
 		
+	public Integer getTime() {
+		return time;
+	}
+
+
+
+	public void setTime(Integer time) {
+		this.time = time;
+	}
+
+
+
 	@ManyToMany(fetch=FetchType.LAZY,
 			cascade= {CascadeType.PERSIST, CascadeType.MERGE,
 			 CascadeType.DETACH, CascadeType.REFRESH})
@@ -74,12 +89,14 @@ public class Album {
 
 
 	
-	public Album(String id, String name, String image) {
+	public Album(String id, String name, String image, Integer time) {
 		super();
 		this.id = id;
 		this.name = name;
 		this.image = image;
+		this.time = time;
 	}
+	
 
 
 

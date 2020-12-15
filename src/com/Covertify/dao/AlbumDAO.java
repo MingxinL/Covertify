@@ -23,6 +23,24 @@ public class AlbumDAO extends DAO {
 		return getSession().get(Album.class,albumId);
 	}
 	
+	public void AddTime(String albumId) {
+		
+		begin();
+		Album tempAlbum = getSession().get(Album.class,albumId);
+		tempAlbum.setTime(tempAlbum.getTime()+1);
+		commit();
+	}
+	
+	public void ReduceTime(String albumId) {
+		
+		begin();
+		Album tempAlbum = getSession().get(Album.class,albumId);
+		if(tempAlbum.getTime()>1) {
+			tempAlbum.setTime(tempAlbum.getTime()-1);
+		}
+		
+		commit();
+	}
 
 	
 	public void addCustomer(Album album, Customer customer) {
@@ -30,6 +48,13 @@ public class AlbumDAO extends DAO {
 		album.addCustomer(customer);	
 		commit();
 		
+	}
+	
+	public void deleteAlbum(String albumId) {
+		begin();
+		Album tempAlbum = getSession().get(Album.class, albumId);
+		getSession().delete(tempAlbum);
+		commit();
 	}
 	
 }

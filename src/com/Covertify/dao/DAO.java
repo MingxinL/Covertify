@@ -12,7 +12,7 @@ public abstract class DAO {
 	
 	private static final Logger log = Logger.getAnonymousLogger();
     
-	private static final ThreadLocal sessionThread = new ThreadLocal();
+	private static final ThreadLocal<Session> sessionThread = new ThreadLocal<Session>();
     
 	private static final SessionFactory sessionFactory = new Configuration().configure("hibernate.cfg.xml").buildSessionFactory();
 
@@ -21,13 +21,17 @@ public abstract class DAO {
 
     public static Session getSession()
     {
-        Session session = (Session) DAO.sessionThread.get();
+        Session session = sessionThread.get();
         
         if (session == null)
         {
+        	System.out.println("-------session == null");
             session = sessionFactory.openSession();
             DAO.sessionThread.set(session);
+        } else {
+        	System.out.println("-------session != null");
         }
+        
         return session;
     }
 
@@ -54,6 +58,7 @@ public abstract class DAO {
     }
 
     public static void close() {
+    	System.out.println("-------session close!!!");
         getSession().close();
         DAO.sessionThread.set(null);
     }

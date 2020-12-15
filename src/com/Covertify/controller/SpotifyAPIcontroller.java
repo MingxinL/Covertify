@@ -17,6 +17,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import com.Covertify.dao.AlbumDAO;
 import com.Covertify.dao.CustomerDAO;
+import com.Covertify.dao.DAO;
 import com.Covertify.hibernate.entity.Album;
 import com.Covertify.hibernate.entity.Customer;
 import com.wrapper.spotify.SpotifyApi;
@@ -36,6 +37,7 @@ import antlr.collections.List;
 import org.springframework.ui.Model;
 import org.springframework.ui.ModelMap;
 
+import javax.servlet.RequestDispatcher;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -55,7 +57,8 @@ public class SpotifyAPIcontroller {
     
     @RequestMapping("/callback")
     public ModelAndView signin(HttpServletRequest request,  HttpServletResponse response, Model model) throws ParseException, SpotifyWebApiException, IOException{
-       				System.out.println("request.getQueryString(): " + request.getQueryString());
+    	request.getSession();
+//    		System.out.println("request.getQueryString(): " + request.getQueryString());
         
        	String accessToken = (String) model.getAttribute("accessToken");
        				System.out.println("accessToken: " + accessToken);
@@ -65,7 +68,7 @@ public class SpotifyAPIcontroller {
        	
         if (accessToken == "") {
         	String code = request.getParameter("code");
-            			System.out.println("code: " + code);
+//            			System.out.println("code: " + code);
 
             // TODO(done!): these 2 lines can only be triggered once
             AuthorizationCodeRequest authorizationCodeRequest = spotifyApi.authorizationCode(code)
@@ -74,9 +77,9 @@ public class SpotifyAPIcontroller {
             
             // Set access and refresh token for further "spotifyApi" object usage
             spotifyApi.setAccessToken(authorizationCodeCredentials.getAccessToken());
-            			System.out.println("getAccessToken()+++: " + authorizationCodeCredentials.getAccessToken());
+//            			System.out.println("getAccessToken()+++: " + authorizationCodeCredentials.getAccessToken());
             spotifyApi.setRefreshToken(authorizationCodeCredentials.getRefreshToken());
-            			System.out.println("Expires in: " + authorizationCodeCredentials.getExpiresIn());
+//            			System.out.println("Expires in: " + authorizationCodeCredentials.getExpiresIn());
             			System.out.println("");
             
             // get current user profile
@@ -84,23 +87,16 @@ public class SpotifyAPIcontroller {
             	    .build();
             
             User user = getCurrentUsersProfileRequest.execute();
-            			System.out.println("Display name: " + user.getDisplayName());
+//            			System.out.println("Display name: " + user.getDisplayName());
             
             // save object into session
             model.addAttribute("accessToken", authorizationCodeCredentials.getAccessToken());
             model.addAttribute("user", getCurrentUsersProfileRequest.execute());
             model.addAttribute("spotifyApi", spotifyApi);
 //            accessToken = authorizationCodeCredentials.getAccessToken();
-        				System.out.println("accessToken: " + (String) model.getAttribute("accessToken"));
-            
-//            Cookie cookie = new Cookie("userName", URLEncoder.encode(user.getDisplayName(), "UTF-8"));
-//            Cookie cookie2 = new Cookie("userImage", user.getImages()[0].getUrl());
-//            Cookie cookie3 = new Cookie("userId",user.getId());
-//
-//            response.addCookie(cookie);
-//            response.addCookie(cookie2);
-//            response.addCookie(cookie3);
+        	
         }
+        System.out.println("=====accessToken: " + (String) model.getAttribute("accessToken"));
         User currUser = (User) model.getAttribute("user");
        
        CustomerDAO cDao = new CustomerDAO();
@@ -121,8 +117,8 @@ public class SpotifyAPIcontroller {
 //		RandomString rString = new RandomString();
 //		String state = rString.getAlphaNumericString(16);
 //		String scope= "streaming user-read-private user-read-email user-read-playback-state playlist-modify-public";  
-    	System.out.println("??????????????");
 
+    	request.getSession();
     	SpotifyApi spotifyApi = new SpotifyApi.Builder()
                 .setClientId(clientId)
                 .setClientSecret(clientSecret)
@@ -139,7 +135,7 @@ public class SpotifyAPIcontroller {
 	     .build();
 	 
 	   URI uri = authorizationCodeUriRequest.execute();
-	   System.out.println("URI: " + uri.toString());
+//	   System.out.println("URI: " + uri.toString());
 
        try {
     	   response.sendRedirect(uri.toString());
@@ -152,8 +148,9 @@ public class SpotifyAPIcontroller {
     
     
     @GetMapping("search")
-    public ModelAndView search(HttpServletRequest request, HttpServletResponse response, SpotifyApi spotifyApi) throws ParseException, SpotifyWebApiException, IOException {
- 
+    public ModelAndView search(HttpServletRequest request, HttpServletResponse response, @SessionAttribute("spotifyApi") SpotifyApi spotifyApi) throws ParseException, SpotifyWebApiException, IOException {
+    	request.getSession();
+
         final String q = request.getParameter("search");
         ModelAndView modelAndView = new ModelAndView();
         if (q != "") {
@@ -163,10 +160,10 @@ public class SpotifyAPIcontroller {
 	//                  .offset(0)
 	//                  .includeExternal("audio")
 	            .build();
-	        System.out.println("searchAlbumsRequest.toString(): "+ searchAlbumsRequest.toString());
+//	        System.out.println("searchAlbumsRequest.toString(): "+ searchAlbumsRequest.toString());
 	        final Paging<AlbumSimplified> albumSimplifiedPaging = searchAlbumsRequest.execute();
 	
-	        System.out.println("Search Result: " + albumSimplifiedPaging.toString());
+//	        System.out.println("Search Result: " + albumSimplifiedPaging.toString());
 	        
 	        final ArrayList<String> CoverURLs = new ArrayList<String>();
 	        ArrayList<Album> albumList = new ArrayList<>();
@@ -179,10 +176,7 @@ public class SpotifyAPIcontroller {
 	        	albumItem.setName(item.getName());
 	        	albumList.add(albumItem);
 	        }
-	        System.out.println("=================================");
-	        System.out.println("albumList size: "+ albumList.size());
-	        System.out.println("=================================");
-			
+	       
 			modelAndView.addObject("AlbumCoverURLs", CoverURLs);
 			modelAndView.addObject("albumList",albumList);
         }
@@ -193,68 +187,113 @@ public class SpotifyAPIcontroller {
     
     
     @GetMapping("album/add")
-    public String addAlbum(@RequestParam("albumId") String theId, @RequestParam("albumName") String theName, @RequestParam("albumImage") String theImage){
+    public String addAlbum(@RequestParam("albumId") String theId, @RequestParam("albumName") String theName, @RequestParam("albumImage") String theImage, @SessionAttribute("user") User user){
  	
-		AlbumDAO adao = new AlbumDAO();
-		CustomerDAO cdao = new CustomerDAO();
-		
-		Album tempAlbum = null;
-		if (!adao.Exist(theId)) {
-			tempAlbum = new Album(theId,theName,theImage);
-			adao.saveAlbums(tempAlbum);
-		} else {
-			tempAlbum = adao.getAlbums(theId);
-		}
-		
-		// get the customers
-//		String customerId = "ff8080817653a0b5017653a0b6d20001"; // Liang
-		String customerId = "21z5ocxxaci7ehx26cob7lhey"; // Jiao
-		
-		Customer tempCustomer = cdao.getCustomers(customerId);
-		
-		// check if the customers have add album before    				
-		boolean hasAddBefore = false;
-		for(Album album : tempCustomer.getAlbums()) {
-			if (album.getId()==theId) {
-				hasAddBefore = true;
-			}
-		}
-		if (!hasAddBefore) {
-			// add customers to the album
-			adao.addCustomer(tempAlbum, tempCustomer);
-		}
+    	AlbumDAO adao = new AlbumDAO();
+    	  CustomerDAO cdao = new CustomerDAO();
+    	  
+    	  Album tempAlbum = null;
 
-//    	// send over to our form
-    	return "addDBsuccess";
+    	  if (!adao.Exist(theId)) {
+    	 
+    	   tempAlbum = new Album(theId,theName,theImage,0);
+    	   adao.saveAlbums(tempAlbum);
+    	  }
+    	  
+    	  // get the customers
+    	  //String customerId = "0qtsgtarmv1zbif195n1df6tu"; // Liang
+//    	  String customerId = "21z5ocxxaci7ehx26cob7lhey"; // Jiao
+    	  String customerId = user.getId();
+    	  
+    	  Customer tempCustomer = cdao.getCustomers(customerId);
+    	  
+    	  // check if the customers have add album before        
+    	  boolean hasAddBefore = false;
+    	  System.out.println("\t\tREAD--tempCustomer.getAlbums()\n" + tempCustomer.getAlbums());
+    	  for(Album album : tempCustomer.getAlbums()) {
+    		  System.out.println("album.getId()--" + album.getId());
+    		  System.out.println("        theId--" + theId);
+    	   if (album.getId()==theId) {
+	    	    hasAddBefore = true;
+	    	    break;
+    	   }
+    	  }
+    	  if (!hasAddBefore) {
+    	   // add customers to the album
+    	   tempAlbum = adao.getAlbums(theId);
+    	   adao.addCustomer(tempAlbum, tempCustomer);
+    	   adao.AddTime(theId); 
+    	  } 
+    	  
+    	  DAO.close();
+
+//    	     // send over to our form
+    	     return "addDBsuccess";
     }
     
     
     
     @GetMapping("album/readAlbums") 
-    public ModelAndView readAlbum(){
+    public ModelAndView readAlbum(@SessionAttribute("user") User user){
     	
-//    	String customerId = "ff8080817653a0b5017653a0b6d20001"; // Liang
-    	String customerId = "21z5ocxxaci7ehx26cob7lhey"; //jiao
+//    	String customerId = "0qtsgtarmv1zbif195n1df6tu"; // Liang
+//    	String customerId = "21z5ocxxaci7ehx26cob7lhey"; // Jiao
+    	String customerId = user.getId();
     	ModelAndView modelAndView = new ModelAndView();
     	CustomerDAO cdao = new CustomerDAO();
+   
     	modelAndView.addObject("albumList",cdao.getAlbums(customerId));
+    		System.out.println("\t\tmodel contains albumList:" + modelAndView.getModel());
+    		System.out.println("\t\talbumList:" + modelAndView.getModel().get("albumList"));
     	modelAndView.setViewName( "CustomerAlbum");
-		
+    	DAO.close();
     	return modelAndView;
     }
     
     
     
     @GetMapping("album/delete") 
-    public void deleteAlbum(@RequestParam("albumId") String theId,HttpServletResponse response) throws IOException{
+    public void deleteAlbum(@RequestParam("albumId") String theId,HttpServletRequest request,HttpServletResponse response, @SessionAttribute("user") User user) throws IOException{
     	
-//    	String customerId = "ff8080817653a0b5017653a0b6d20001"; // Liang
-    	String customerId = "21z5ocxxaci7ehx26cob7lhey"; //jiao
+//    	String customerId = "0qtsgtarmv1zbif195n1df6tu"; // Liang
+//    	String customerId = "21z5ocxxaci7ehx26cob7lhey"; // Jiao
+    	String customerId = user.getId();
+    	
     	CustomerDAO cdao = new CustomerDAO();
+    	AlbumDAO adao = new AlbumDAO();
     	cdao.deleteAlbums (customerId, theId);
-		
+    	
+    	DAO.close();
+ 
+    	if (adao.getAlbums(theId).getTime() <= 1) {
+    		adao.deleteAlbum(theId);
+    	} else {
+    		adao.ReduceTime(theId);
+    	}
+    	
+    	DAO.close();
     	response.sendRedirect("http://localhost:8080/Covertify/album/readAlbums");
+    	
+   
+  //  	request.setAttribute("albumList",cdao.getAlbums(customerId));
+//		RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/jsp/CustomerAlbum.jsp");
+//		
+//    	//response.forward("http://localhost:8080/Covertify/album/readAlbums");
+//		try {
+//			rd.forward(request, response);
+//		} catch (ServletException | IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
     }
+    
+    @RequestMapping("/logout")
+    public ModelAndView logout(HttpServletRequest request,  HttpServletResponse response, Model model) {
+		
+    	return null;
+    	
+    }
+    
 }
 
 
