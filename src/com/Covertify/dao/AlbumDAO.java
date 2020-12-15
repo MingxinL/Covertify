@@ -37,7 +37,7 @@ public class AlbumDAO extends DAO {
 		Album tempAlbum = getSession().get(Album.class,albumId);
 		if(tempAlbum.getTime()>1) {
 			tempAlbum.setTime(tempAlbum.getTime()-1);
-		} 
+		}
 		
 		commit();
 	}
@@ -48,6 +48,13 @@ public class AlbumDAO extends DAO {
 		album.addCustomer(customer);	
 		commit();
 		
+	}
+	
+	public void deleteAlbum(String albumId) {
+		begin();
+		Album tempAlbum = getSession().get(Album.class, albumId);
+		getSession().delete(tempAlbum);
+		commit();
 	}
 	
 }

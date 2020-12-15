@@ -48,9 +48,9 @@ public class CustomerDAO extends DAO {
 		Album tempAlbum = getSession().get(Album.class,albumId);
 		Customer tempCustomer = getSession().get(Customer.class,customerId);
 		tempAlbum.deleteCustomers(tempCustomer);
-		if(tempAlbum.getTime()==1) {
-				getSession().delete(tempAlbum);
-		}
+//		if(tempAlbum.getTime()==1) {
+//				getSession().delete(tempAlbum);
+//		}
 		commit();
 		
 	}
