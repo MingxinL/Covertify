@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.SessionAttribute;
 import org.springframework.web.bind.annotation.SessionAttributes;
+import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,12 +25,16 @@ import com.wrapper.spotify.SpotifyApi;
 import com.wrapper.spotify.SpotifyHttpManager;
 import com.wrapper.spotify.exceptions.SpotifyWebApiException;
 import com.wrapper.spotify.model_objects.credentials.AuthorizationCodeCredentials;
+import com.wrapper.spotify.model_objects.special.AlbumSimplifiedSpecial;
 import com.wrapper.spotify.model_objects.specification.AlbumSimplified;
 import com.wrapper.spotify.model_objects.specification.Paging;
+import com.wrapper.spotify.model_objects.specification.TrackSimplified;
 import com.wrapper.spotify.model_objects.specification.User;
 import com.wrapper.spotify.requests.authorization.authorization_code.AuthorizationCodeRequest;
 import com.wrapper.spotify.requests.authorization.authorization_code.AuthorizationCodeUriRequest;
+import com.wrapper.spotify.requests.data.albums.GetAlbumsTracksRequest;
 import com.wrapper.spotify.requests.data.search.simplified.SearchAlbumsRequest;
+import com.wrapper.spotify.requests.data.search.simplified.special.SearchAlbumsSpecialRequest;
 import com.wrapper.spotify.requests.data.users_profile.GetCurrentUsersProfileRequest;
 
 import antlr.collections.List;
@@ -41,13 +46,16 @@ import javax.servlet.RequestDispatcher;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 @Controller
+
 @SessionAttributes({"accessToken", "user", "spotifyApi"})
 public class SpotifyAPIcontroller {
 
@@ -68,6 +76,7 @@ public class SpotifyAPIcontroller {
        	
         if (accessToken == "") {
         	String code = request.getParameter("code");
+        	//String code = "AQCaKvBh7NNokg3B_wGrUjm-t5tLO0tizJXdJCXHsWM3_B38165E9OwtfpgY-y_Yp43TgMNmwCVUFiaPzjVAIU2Y4ZLJJgQ9lOSrUQeMYZ_jzXxyqIY5RTfs4LEgGaeDwA0pmzHRDGDquiO753p5BtBtuqixX16Uuy98Eby1ldvtD5iB4EJM88IvJDM";
 //            			System.out.println("code: " + code);
 
             // TODO(done!): these 2 lines can only be triggered once
@@ -76,6 +85,7 @@ public class SpotifyAPIcontroller {
             AuthorizationCodeCredentials authorizationCodeCredentials = authorizationCodeRequest.execute();
             
             // Set access and refresh token for further "spotifyApi" object usage
+            //spotifyApi.setAccessToken("BQC0kBgAyZDTXwYYnHq_fkczAlyXLwk7fPN2re7KzogQur0bbVxnDtuvDjQwmiQ4IpwRp4lLGUh4IMfBITZz7vfjcPvbY4j2EwSNM7wsDs1HnTq1tLMZoIbTweod0ANA8K_W075mf70e879R9_JmazMY8zX3wqj8DTzBtQ");
             spotifyApi.setAccessToken(authorizationCodeCredentials.getAccessToken());
 //            			System.out.println("getAccessToken()+++: " + authorizationCodeCredentials.getAccessToken());
             spotifyApi.setRefreshToken(authorizationCodeCredentials.getRefreshToken());
@@ -91,6 +101,7 @@ public class SpotifyAPIcontroller {
             
             // save object into session
             model.addAttribute("accessToken", authorizationCodeCredentials.getAccessToken());
+            //model.addAttribute("accessToken", "BQC0kBgAyZDTXwYYnHq_fkczAlyXLwk7fPN2re7KzogQur0bbVxnDtuvDjQwmiQ4IpwRp4lLGUh4IMfBITZz7vfjcPvbY4j2EwSNM7wsDs1HnTq1tLMZoIbTweod0ANA8K_W075mf70e879R9_JmazMY8zX3wqj8DTzBtQ");
             model.addAttribute("user", getCurrentUsersProfileRequest.execute());
             model.addAttribute("spotifyApi", spotifyApi);
 //            accessToken = authorizationCodeCredentials.getAccessToken();
@@ -98,6 +109,7 @@ public class SpotifyAPIcontroller {
         }
         System.out.println("=====accessToken: " + (String) model.getAttribute("accessToken"));
         User currUser = (User) model.getAttribute("user");
+ 
        
        CustomerDAO cDao = new CustomerDAO();
        Customer tempCustomer = null;
@@ -125,6 +137,7 @@ public class SpotifyAPIcontroller {
                 .setRedirectUri(redirect_uri)
                 .build();
     	
+    	System.out.println("spotifyAPI 132" + spotifyApi);
         model.addAttribute("spotifyApi", spotifyApi);
         model.addAttribute("accessToken", "");
         model.addAttribute("user", null);
@@ -132,7 +145,8 @@ public class SpotifyAPIcontroller {
 
     	System.out.println("spotify already exists.");
 	   AuthorizationCodeUriRequest authorizationCodeUriRequest = spotifyApi.authorizationCodeUri()
-	     .build();
+			   .show_dialog(true)
+			   .build();
 	 
 	   URI uri = authorizationCodeUriRequest.execute();
 //	   System.out.println("URI: " + uri.toString());
@@ -149,25 +163,34 @@ public class SpotifyAPIcontroller {
     
     @GetMapping("search")
     public ModelAndView search(HttpServletRequest request, HttpServletResponse response, @SessionAttribute("spotifyApi") SpotifyApi spotifyApi) throws ParseException, SpotifyWebApiException, IOException {
+    	 System.out.println("SpotifyApi 168"+ spotifyApi);
     	request.getSession();
-
+       
         final String q = request.getParameter("search");
+        
+        if (request.getAttribute("unsafe_request") == "true") {
+        	return new ModelAndView("securityerror");
+        }
+       
         ModelAndView modelAndView = new ModelAndView();
-        if (q != "") {
-	        final SearchAlbumsRequest searchAlbumsRequest = spotifyApi.searchAlbums(q)
+   //     if (q != "") {
+	       // final SearchAlbumsRequest searchAlbumsRequest = spotifyApi.searchAlbums(q)
+        final SearchAlbumsSpecialRequest searchAlbumsRequest = spotifyApi.searchAlbumsSpecial(q)
+	        		
 	//                  .market(CountryCode.SE)
 	//                  .limit(10)
 	//                  .offset(0)
 	//                  .includeExternal("audio")
 	            .build();
 //	        System.out.println("searchAlbumsRequest.toString(): "+ searchAlbumsRequest.toString());
-	        final Paging<AlbumSimplified> albumSimplifiedPaging = searchAlbumsRequest.execute();
+	        final Paging<AlbumSimplifiedSpecial> albumSimplifiedPaging = searchAlbumsRequest.execute();
 	
 //	        System.out.println("Search Result: " + albumSimplifiedPaging.toString());
 	        
 	        final ArrayList<String> CoverURLs = new ArrayList<String>();
 	        ArrayList<Album> albumList = new ArrayList<>();
-	        for (AlbumSimplified item : albumSimplifiedPaging.getItems()) {
+	       
+	        for (AlbumSimplifiedSpecial item : albumSimplifiedPaging.getItems()) {
 	        	// add 640 size cover image item
 	        	CoverURLs.add(item.getImages()[0].getUrl());
 	        	Album albumItem = new Album();
@@ -175,11 +198,20 @@ public class SpotifyAPIcontroller {
 	        	albumItem.setImage(item.getImages()[0].getUrl());
 	        	albumItem.setName(item.getName());
 	        	albumList.add(albumItem);
+	        	GetAlbumsTracksRequest getAlbumsTracksRequest = spotifyApi.getAlbumsTracks(item.getId())
+//        	          .limit(1)
+//	        	          .offset(0)
+//	        	          .market(CountryCode.SE)
+	        	    .build();
+	        	Paging<TrackSimplified> trackSimplifiedPaging = getAlbumsTracksRequest.execute();
+	        	System.out.println("trackSimplifiedPage"+trackSimplifiedPaging.getItems()[0].getPreviewUrl());
+	        	albumItem.setPreUrl(trackSimplifiedPaging.getItems()[0].getPreviewUrl());
+	        	
 	        }
 	       
 			modelAndView.addObject("AlbumCoverURLs", CoverURLs);
 			modelAndView.addObject("albumList",albumList);
-        }
+     //   }
         modelAndView.setViewName("mainPage");
         return modelAndView;
     }
@@ -288,11 +320,26 @@ public class SpotifyAPIcontroller {
     }
     
     @RequestMapping("/logout")
-    public ModelAndView logout(HttpServletRequest request,  HttpServletResponse response, Model model) {
+    public void logout(HttpServletRequest request,  HttpServletResponse response, Model model,HttpSession httpsession, SessionStatus status) {
 		
-    	return null;
+    	try {
+    		status.setComplete();
+    		httpsession.invalidate();
+			response.sendRedirect("http://localhost:8080/Covertify/");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     	
     }
+    @RequestMapping("/")
+    public String init(HttpServletRequest request,  HttpServletResponse response, Model model) {
+		
+    	return "init";
+    	
+    }
+    
+    
     
 }
 

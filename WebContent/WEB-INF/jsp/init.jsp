@@ -10,10 +10,10 @@
 
 		<form action="spotify" method="post" style="border:1px solid #ccc">
             <div class="container">
+              <h1>init</h1>
               <input type="submit" value="Submit">
             </div>
 		</form>
 	</div>
 </body>
 </html>
-

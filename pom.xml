@@ -132,6 +132,18 @@
 		    <version>8.0.17</version>
 		</dependency>
 		
+		<!-- Spring Security -->
+		<dependency>
+		    <groupId>org.springframework.security</groupId>
+		    <artifactId>spring-security-web</artifactId>
+		    <version>5.0.0.RELEASE</version>
+		</dependency>
+		<!-- Spring-security-web and spring-security-config -->
+		<dependency>
+		    <groupId>org.springframework.security</groupId>
+		    <artifactId>spring-security-config</artifactId>
+		    <version>5.0.0.RELEASE</version>
+		</dependency>
 		
 	</dependencies>
 </project>

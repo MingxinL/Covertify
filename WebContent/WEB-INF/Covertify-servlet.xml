@@ -27,6 +27,15 @@
 		<property name="suffix" value=".jsp" />
 	</bean>
  	
- 
+ 	<mvc:interceptors>
+ 		<mvc:interceptor>
+ 			<mvc:mapping path="/search**" />
+ 			<bean class="com.Covertify.interceptor.searchInterceptor" />
+ 		</mvc:interceptor>
+ 		<mvc:interceptor>
+ 			<mvc:mapping path="/callback**" />
+ 			<bean class="com.Covertify.interceptor.signinInterceptor" />
+ 		</mvc:interceptor>
+ 	</mvc:interceptors>
  
 </beans>
