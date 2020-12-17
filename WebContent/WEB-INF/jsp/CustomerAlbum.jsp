@@ -23,12 +23,17 @@
 						<td> <a href = "${deleteLink}"
 								onclick = "if (!(confirm('Are you sure you want to delete this album'))) return false"
 						>delete</a></td>
-						    <audio controls="controls" src=${tempAlbum.preUrl} />
-					     <br />
-					     <br />
-					     <br />     
+						 
+    
 					
 					</tr>
+							<div class="card-body">
+							    <h5 class="card-title">${tempAlbum.name}</h5>
+							    <audio controls="controls" src=${tempAlbum.preUrl} />
+					            Your browser does not support the
+					            <code>audio</code> element
+							   
+							  </div>
 				
 		</c:forEach>
 

@@ -64,87 +64,48 @@ public class SpotifyAPIcontroller {
     URI redirect_uri = SpotifyHttpManager.makeUri("http://localhost:8080/Covertify/callback"); // Your redirect uri
     
     @RequestMapping("/callback")
-    public ModelAndView signin(HttpServletRequest request,  HttpServletResponse response, Model model) throws ParseException, SpotifyWebApiException, IOException{
-    	request.getSession();
-//    		System.out.println("request.getQueryString(): " + request.getQueryString());
-        
-       	String accessToken = (String) model.getAttribute("accessToken");
-       				System.out.println("accessToken: " + accessToken);
-       	
-       	SpotifyApi spotifyApi = (SpotifyApi) model.getAttribute("spotifyApi");
-       				System.out.println("SpotifyApi: " + spotifyApi);
-       	
-        if (accessToken == "") {
-        	String code = request.getParameter("code");
-        	//String code = "AQCaKvBh7NNokg3B_wGrUjm-t5tLO0tizJXdJCXHsWM3_B38165E9OwtfpgY-y_Yp43TgMNmwCVUFiaPzjVAIU2Y4ZLJJgQ9lOSrUQeMYZ_jzXxyqIY5RTfs4LEgGaeDwA0pmzHRDGDquiO753p5BtBtuqixX16Uuy98Eby1ldvtD5iB4EJM88IvJDM";
-//            			System.out.println("code: " + code);
+    public ModelAndView signin(HttpServletRequest request,  HttpServletResponse response) throws ParseException, SpotifyWebApiException, IOException{
+    	HttpSession session=request.getSession();
+    	System.out.println("Session Attr (code): " + session.getAttribute("code"));
+    	System.out.println("Session Attr (user): " + session.getAttribute("user"));
+    	System.out.println("Session Attr (spotifyApi): " + session.getAttribute("spotifyApi"));
 
-            // TODO(done!): these 2 lines can only be triggered once
-            AuthorizationCodeRequest authorizationCodeRequest = spotifyApi.authorizationCode(code)
-            	          .build();
-            AuthorizationCodeCredentials authorizationCodeCredentials = authorizationCodeRequest.execute();
-            
-            // Set access and refresh token for further "spotifyApi" object usage
-            //spotifyApi.setAccessToken("BQC0kBgAyZDTXwYYnHq_fkczAlyXLwk7fPN2re7KzogQur0bbVxnDtuvDjQwmiQ4IpwRp4lLGUh4IMfBITZz7vfjcPvbY4j2EwSNM7wsDs1HnTq1tLMZoIbTweod0ANA8K_W075mf70e879R9_JmazMY8zX3wqj8DTzBtQ");
-            spotifyApi.setAccessToken(authorizationCodeCredentials.getAccessToken());
-//            			System.out.println("getAccessToken()+++: " + authorizationCodeCredentials.getAccessToken());
-            spotifyApi.setRefreshToken(authorizationCodeCredentials.getRefreshToken());
-//            			System.out.println("Expires in: " + authorizationCodeCredentials.getExpiresIn());
-            			System.out.println("");
-            
-            // get current user profile
-            GetCurrentUsersProfileRequest getCurrentUsersProfileRequest = spotifyApi.getCurrentUsersProfile()
-            	    .build();
-            
-            User user = getCurrentUsersProfileRequest.execute();
-//            			System.out.println("Display name: " + user.getDisplayName());
-            
-            // save object into session
-            model.addAttribute("accessToken", authorizationCodeCredentials.getAccessToken());
-            //model.addAttribute("accessToken", "BQC0kBgAyZDTXwYYnHq_fkczAlyXLwk7fPN2re7KzogQur0bbVxnDtuvDjQwmiQ4IpwRp4lLGUh4IMfBITZz7vfjcPvbY4j2EwSNM7wsDs1HnTq1tLMZoIbTweod0ANA8K_W075mf70e879R9_JmazMY8zX3wqj8DTzBtQ");
-            model.addAttribute("user", getCurrentUsersProfileRequest.execute());
-            model.addAttribute("spotifyApi", spotifyApi);
-//            accessToken = authorizationCodeCredentials.getAccessToken();
-        	
-        }
-        System.out.println("=====accessToken: " + (String) model.getAttribute("accessToken"));
-        User currUser = (User) model.getAttribute("user");
+        User currUser = (User) session.getAttribute("user");
  
-       
        CustomerDAO cDao = new CustomerDAO();
        Customer tempCustomer = null;
        if (!cDao.Exist(currUser.getId())){
         tempCustomer = new Customer(currUser.getId(), currUser.getDisplayName(), currUser.getImages()[0].getUrl());
+        tempCustomer.setRole("auth");
+        
         cDao.saveCustomer(tempCustomer);
        }
+       String role = cDao.getCustomers(currUser.getId()).getRole();
        
-       return new ModelAndView("mainPage");
+       return new ModelAndView("mainPage","role",role);
     }
 	
 
 //    @ModelAttribute("spotify") SpotifyApi spotifyApi
     
     @PostMapping("spotify")
-    public void spotifysign(HttpServletRequest request, HttpServletResponse response, Model model) throws ParseException, SpotifyWebApiException, IOException {
+    public void spotifysign(HttpServletRequest request, HttpServletResponse response) throws ParseException, SpotifyWebApiException, IOException {
 //		RandomString rString = new RandomString();
 //		String state = rString.getAlphaNumericString(16);
 //		String scope= "streaming user-read-private user-read-email user-read-playback-state playlist-modify-public";  
 
-    	request.getSession();
-    	SpotifyApi spotifyApi = new SpotifyApi.Builder()
+    	System.out.println("spotify already exists.");
+    	HttpSession session=request.getSession();
+    	
+		SpotifyApi spotifyApi = new SpotifyApi.Builder()
                 .setClientId(clientId)
                 .setClientSecret(clientSecret)
                 .setRedirectUri(redirect_uri)
                 .build();
+		
+		session.setAttribute("spotifyApi", spotifyApi);
     	
-    	System.out.println("spotifyAPI 132" + spotifyApi);
-        model.addAttribute("spotifyApi", spotifyApi);
-        model.addAttribute("accessToken", "");
-        model.addAttribute("user", null);
-           
-
-    	System.out.println("spotify already exists.");
-	   AuthorizationCodeUriRequest authorizationCodeUriRequest = spotifyApi.authorizationCodeUri()
+	   AuthorizationCodeUriRequest authorizationCodeUriRequest = ((SpotifyApi) request.getSession().getAttribute("spotifyApi")).authorizationCodeUri()
 			   .show_dialog(true)
 			   .build();
 	 
@@ -162,10 +123,10 @@ public class SpotifyAPIcontroller {
     
     
     @GetMapping("search")
-    public ModelAndView search(HttpServletRequest request, HttpServletResponse response, @SessionAttribute("spotifyApi") SpotifyApi spotifyApi) throws ParseException, SpotifyWebApiException, IOException {
-    	 System.out.println("SpotifyApi 168"+ spotifyApi);
-    	request.getSession();
-       
+    public ModelAndView search(HttpServletRequest request, HttpServletResponse response) throws ParseException, SpotifyWebApiException, IOException {
+
+    	HttpSession session=request.getSession();
+    	SpotifyApi spotifyApi = (SpotifyApi) session.getAttribute("spotifyApi");
         final String q = request.getParameter("search");
         
         if (request.getAttribute("unsafe_request") == "true") {
@@ -219,8 +180,11 @@ public class SpotifyAPIcontroller {
     
     
     @GetMapping("album/add")
-    public String addAlbum(@RequestParam("albumId") String theId, @RequestParam("albumName") String theName, @RequestParam("albumImage") String theImage, @RequestParam("albumPreUrl") String thePreUrl, @SessionAttribute("user") User user){
+    public String addAlbum(HttpServletRequest request, @RequestParam("albumId") String theId, @RequestParam("albumName") String theName, @RequestParam("albumImage") String theImage, @RequestParam("albumPreUrl") String thePreUrl){
  	
+    	HttpSession session = request.getSession();
+    	User user = (User) session.getAttribute("user");
+    	
     	AlbumDAO adao = new AlbumDAO();
     	  CustomerDAO cdao = new CustomerDAO();
     	  
@@ -266,8 +230,9 @@ public class SpotifyAPIcontroller {
     
     
     @GetMapping("album/readAlbums") 
-    public ModelAndView readAlbum(@SessionAttribute("user") User user){
-    	
+    public ModelAndView readAlbum(HttpServletRequest request){
+    	HttpSession session = request.getSession();
+    	User user = (User) session.getAttribute("user");
 //    	String customerId = "0qtsgtarmv1zbif195n1df6tu"; // Liang
 //    	String customerId = "21z5ocxxaci7ehx26cob7lhey"; // Jiao
     	String customerId = user.getId();
@@ -285,8 +250,9 @@ public class SpotifyAPIcontroller {
     
     
     @GetMapping("album/delete") 
-    public void deleteAlbum(@RequestParam("albumId") String theId,HttpServletRequest request,HttpServletResponse response, @SessionAttribute("user") User user) throws IOException{
-    	
+    public void deleteAlbum(@RequestParam("albumId") String theId, HttpServletRequest request, HttpServletResponse response) throws IOException{
+    	HttpSession session = request.getSession();
+    	User user = (User) session.getAttribute("user");
 //    	String customerId = "0qtsgtarmv1zbif195n1df6tu"; // Liang
 //    	String customerId = "21z5ocxxaci7ehx26cob7lhey"; // Jiao
     	String customerId = user.getId();
@@ -320,7 +286,7 @@ public class SpotifyAPIcontroller {
     }
     
     @RequestMapping("/logout")
-    public void logout(HttpServletRequest request,  HttpServletResponse response, Model model,HttpSession httpsession, SessionStatus status) {
+    public void logout(HttpServletRequest request,  HttpServletResponse response, HttpSession httpsession, SessionStatus status) {
 		
     	try {
     		status.setComplete();
@@ -333,7 +299,7 @@ public class SpotifyAPIcontroller {
     	
     }
     @RequestMapping("/")
-    public String init(HttpServletRequest request,  HttpServletResponse response, Model model) {
+    public String init(HttpServletRequest request,  HttpServletResponse response) {
 		
     	return "init";
     	

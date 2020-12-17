@@ -32,7 +32,10 @@
 	Logged in!
 	<img alt="Covertify-Logo" src="Resources/Assets/Covertify.png" width=30%>
 	<a href="album/readAlbums">read albums before</a>
-	
+	<c:if test="${role.equals('auth')}"> 
+  		<input type="submit" value="Add popular albums" />
+ 	</c:if> 
+ 	<h1>customer role : ${role}</h1>
 	<!-- Add a logout button -->
 	<form:form action="${pageContext.request.contextPath}/logout" 
 			   method="POST">
@@ -76,32 +79,6 @@
 				
 					
 				</c:forEach>
-	
-	<script>
-		/* var URLList="${AlbumCoverURLs}".slice(1, -1);
-	
-		URLList = URLList.split(", ");
-		console.log("111");
-		console.log(URLList);
-		
-		for(var i = 0; i < URLList.length; i++) {
-			/* TODO: add infinite scroll */
-		/* 	var div = document.createElement('div');
-		    var img = document.createElement('img');
-		    var a  = document.createElement('a');
-		    a.href="http://localhost:8080/Covertify/add?"+"album="+URLList[i];
-		    a.innerHTML = "add it";
-		    console.log(${AlbumCoverURLs[i]});
-		    img.src = URLList[i];
-		    img.height = 200;
-		    img.width = 200;
-		   
-		   
-		    div.appendChild(img);
-		    div.appendChild(a);
-		    document.body.appendChild(div); */
-		//} */
-	</script>
 </body>
 </html>
 
