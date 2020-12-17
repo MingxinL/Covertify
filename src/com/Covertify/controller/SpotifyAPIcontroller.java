@@ -219,7 +219,7 @@ public class SpotifyAPIcontroller {
     
     
     @GetMapping("album/add")
-    public String addAlbum(@RequestParam("albumId") String theId, @RequestParam("albumName") String theName, @RequestParam("albumImage") String theImage, @SessionAttribute("user") User user){
+    public String addAlbum(@RequestParam("albumId") String theId, @RequestParam("albumName") String theName, @RequestParam("albumImage") String theImage, @RequestParam("albumPreUrl") String thePreUrl, @SessionAttribute("user") User user){
  	
     	AlbumDAO adao = new AlbumDAO();
     	  CustomerDAO cdao = new CustomerDAO();
@@ -228,7 +228,7 @@ public class SpotifyAPIcontroller {
 
     	  if (!adao.Exist(theId)) {
     	 
-    	   tempAlbum = new Album(theId,theName,theImage,0);
+    	   tempAlbum = new Album(theId,theName,theImage,0,thePreUrl);
     	   adao.saveAlbums(tempAlbum);
     	  }
     	  

@@ -56,10 +56,10 @@
 							<c:param name= "albumId" value="${tempAlbum.id}" />
 							<c:param name= "albumName" value="${tempAlbum.name}" />
 							<c:param name= "albumImage" value="${tempAlbum.image}" />
+							<c:param name="albumPreUrl" value = "${tempAlbum.preUrl} " />
 						</c:url>
 				
-				<div class="row row-cols-1 row-cols-md-3 g-4">
-  					<div class="col">
+			
 						<div class="card" style="width: 18rem;">
 							  <img src=${tempAlbum.image} class="card-img-top" alt="...">
 							  <div class="card-body">
@@ -67,13 +67,12 @@
 							    <audio controls="controls" src=${tempAlbum.preUrl} />
 					            Your browser does not support the
 					            <code>audio</code> element
-							    <a href = "${addLink}" class="btn btn-primary">Add</a>
+							   
 							  </div>
 						</div>
-					</div>
-				</div>
 				
-						
+				
+						 <a href = "${addLink}" class="btn btn-primary">Add</a>
 				
 					
 				</c:forEach>

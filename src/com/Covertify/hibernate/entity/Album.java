@@ -47,6 +47,7 @@ public class Album {
 	@Column(name="time")
 	private Integer time;
 	
+	@Column(name="preUrl")
 	private String preUrl;
 	
 		
@@ -103,12 +104,13 @@ public class Album {
 
 
 	
-	public Album(String id, String name, String image, Integer time) {
+	public Album(String id, String name, String image, Integer time, String preUrl) {
 		super();
 		this.id = id;
 		this.name = name;
 		this.image = image;
 		this.time = time;
+		this.preUrl = preUrl;
 	}
 	
 

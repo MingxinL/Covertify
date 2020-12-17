@@ -17,6 +17,7 @@ CREATE TABLE `album` (
   `name` varchar(255) DEFAULT NULL,
   `image` varchar(2000) DEFAULT NULL,
   `time` integer NOT NULL,
+ `preUrl` varChar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
   
 );
