@@ -18,14 +18,16 @@
 				
 					<tr>
 		
-						<td> ${tempAlbum.name} </td>
+						<td> ${tempAlbum.name} </td>				
 						<td> <img src=${tempAlbum.image} /> </td>
-						    <audio controls="controls" src=${tempAlbum.preUrl} />
-					           
-						
 						<td> <a href = "${deleteLink}"
 								onclick = "if (!(confirm('Are you sure you want to delete this album'))) return false"
 						>delete</a></td>
+						    <audio controls="controls" src=${tempAlbum.preUrl} />
+					     <br />
+					     <br />
+					     <br />     
+					
 					</tr>
 				
 		</c:forEach>
