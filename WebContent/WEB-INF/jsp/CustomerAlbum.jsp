@@ -8,7 +8,7 @@
 <title>Insert title here</title>
 </head>
 <body>
-
+		<a href="/Covertify/callback">back to mainPage</a>
 		<c:forEach var="tempAlbum" items="${albumList}">
 					
 						<!-- construct an "delete" link with album id -->

@@ -7,6 +7,7 @@
 <title>Insert title here</title>
 </head>
 <body>
+	<a href="/Covertify/callback">back to mainPage</a>
 	<h1>add database success</h1>
 
 </body>

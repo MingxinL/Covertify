@@ -31,11 +31,13 @@
 <body>
 	Logged in!
 	<img alt="Covertify-Logo" src="Resources/Assets/Covertify.png" width=30%>
-	<a href="album/readAlbums">read albums before</a>
-	<c:if test="${role.equals('auth')}"> 
-  		<input type="submit" value="Add popular albums" />
- 	</c:if> 
- 	<h1>customer role : ${role}</h1>
+	
+ 	
+ 
+  	<a href="album/readAlbums">read albums before</a>
+
+ 	
+ 	<h1>customer role : ${sessionScope.role}</h1>
 	<!-- Add a logout button -->
 	<form:form action="${pageContext.request.contextPath}/logout" 
 			   method="POST">
@@ -44,6 +46,31 @@
 	
 	
 	</form:form>
+	
+	
+	<h1>choice of Covertify</h1>
+	<c:forEach var="tempAlbum" items="${sessionScope.AuthList}">
+				<!-- construct an "add" link with album id -->
+					
+			
+			
+						<div class="card" style="width: 18rem;">
+							  <img src=${tempAlbum.image} class="card-img-top" alt="...">
+							  <div class="card-body">
+							    <h5 class="card-title">${tempAlbum.name}</h5>
+							    <audio controls="controls" src=${tempAlbum.preUrl} />
+					            Your browser does not support the
+					            <code>audio</code> element
+							   
+							  </div>
+						</div>
+			
+	
+				
+					
+	</c:forEach>
+	
+	<h1>search section</h1>
 	<form action="search">
 	  <label for="search">search:</label><br>
 	  <input type="text" id="fname" name="search" value="Enter Album Keyword..."><br>

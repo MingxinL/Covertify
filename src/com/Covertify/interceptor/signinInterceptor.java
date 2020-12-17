@@ -7,6 +7,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.springframework.ui.Model;
+import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 import com.wrapper.spotify.SpotifyApi;
@@ -31,6 +32,7 @@ public class signinInterceptor extends HandlerInterceptorAdapter{
 		System.out.println("Line 31 code: " + code);
 		System.out.println("Line 32 request: " + request.getRequestURL());
 		System.out.println("Line 33 attr code: " + request.getSession().getAttribute("code"));
+		System.out.println("Line 34 access token: " + request.getSession().getAttribute("accessToken"));
 		
 		if (request.getSession().getAttribute("code") == null) {
 			// normal situation: it is first time request /callback
@@ -39,7 +41,9 @@ public class signinInterceptor extends HandlerInterceptorAdapter{
 			if (code == null) {
 				// something wrong, redirect to login
 				// TODO: maybe need to display some error info in browser
+				session.invalidate();
 				response.sendRedirect("http://localhost:8080/Covertify/");
+				
 				return false;
 			} else {
 				session.setAttribute("code",code);
@@ -71,6 +75,7 @@ public class signinInterceptor extends HandlerInterceptorAdapter{
 			
 			// check user
 			if (session.getAttribute("user") == null || session.getAttribute("spotifyApi") == null) {
+				session.invalidate();
 				response.sendRedirect("http://localhost:8080/Covertify/");
 				return false;
 			}
@@ -78,15 +83,16 @@ public class signinInterceptor extends HandlerInterceptorAdapter{
 		}
 
 		System.out.println("request.getQueryString()"+ request.getQueryString());
-		if ( request.getQueryString().contains("error=access_denied")) {
+		if ( request.getQueryString()!=null && request.getQueryString().contains("error=access_denied")) {
 			System.out.println("URI"+ request.getQueryString().contains("error=access_denied"));
+			session.invalidate();
 			response.sendRedirect("http://localhost:8080/Covertify/");
 			return false;
 		}
 		
 		
 		
-	
+		
 		return true;
 	}
 
