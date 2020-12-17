@@ -29,6 +29,7 @@ CREATE TABLE `customer` (
   `id` varchar(255) NOT NULL,
   `name` varchar(255) DEFAULT NULL,
   `image` varchar(2000) DEFAULT NULL,
+  `role`  varchar(30) DEFAULT NULL,
   PRIMARY KEY (`id`)
 );
 

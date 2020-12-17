@@ -104,6 +104,8 @@ public class SpotifyAPIcontroller {
             //model.addAttribute("accessToken", "BQC0kBgAyZDTXwYYnHq_fkczAlyXLwk7fPN2re7KzogQur0bbVxnDtuvDjQwmiQ4IpwRp4lLGUh4IMfBITZz7vfjcPvbY4j2EwSNM7wsDs1HnTq1tLMZoIbTweod0ANA8K_W075mf70e879R9_JmazMY8zX3wqj8DTzBtQ");
             model.addAttribute("user", getCurrentUsersProfileRequest.execute());
             model.addAttribute("spotifyApi", spotifyApi);
+            //
+
 //            accessToken = authorizationCodeCredentials.getAccessToken();
         	
         }
@@ -115,10 +117,16 @@ public class SpotifyAPIcontroller {
        Customer tempCustomer = null;
        if (!cDao.Exist(currUser.getId())){
         tempCustomer = new Customer(currUser.getId(), currUser.getDisplayName(), currUser.getImages()[0].getUrl());
+      
+        //change role here
+        
+        tempCustomer.setRole("customer");
         cDao.saveCustomer(tempCustomer);
        }
        
-       return new ModelAndView("mainPage");
+      String role = cDao.getCustomers(currUser.getId()).getRole();
+       
+       return new ModelAndView("mainPage","role",role);
     }
 	
 
@@ -339,6 +347,7 @@ public class SpotifyAPIcontroller {
     	
     }
     
+   
     
     
 }

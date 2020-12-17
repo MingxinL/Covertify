@@ -33,6 +33,21 @@ public class Customer {
 	@Column(name="image")
 	private String image;
 	
+	@Column(name="role")
+	private String role;
+	
+	public String getRole() {
+		return role;
+	}
+
+
+
+	public void setRole(String role) {
+		this.role = role;
+	}
+
+
+
 	public Customer(String id, String name, String image) {
 		super();
 		this.id = id;

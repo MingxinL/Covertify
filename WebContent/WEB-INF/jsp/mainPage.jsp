@@ -38,9 +38,16 @@
 			   method="POST">
 	
 		<input type="submit" value="Logout" />
-	
-	
+
 	</form:form>
+	
+	<c:if test="${role.equals('auth')}">	
+		<input type="submit" value="Add popular albums" />
+	</c:if> 
+	<h1>customer role : ${role}</h1>
+	
+	
+	
 	<form action="search">
 	  <label for="search">search:</label><br>
 	  <input type="text" id="fname" name="search" value="Enter Album Keyword..."><br>
