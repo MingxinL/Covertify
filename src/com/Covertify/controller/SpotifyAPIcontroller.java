@@ -90,7 +90,7 @@ public class SpotifyAPIcontroller {
        	//to do!!!!!!!!!
        //	session.setAttribute("AuthList",cDao.getAlbums("0qtsgtarmv1zbif195n1df6tu"));
    
-       
+       	session.setAttribute("AuthList",cDao.getAlbums("0qtsgtarmv1zbif195n1df6tu"));
        return new ModelAndView("mainPage");
     }
 	
@@ -188,6 +188,7 @@ public class SpotifyAPIcontroller {
 	       
 			modelAndView.addObject("AlbumCoverURLs", CoverURLs);
 			modelAndView.addObject("albumList",albumList);
+			
      //   }
         modelAndView.setViewName("mainPage");
         return modelAndView;
@@ -267,16 +268,16 @@ public class SpotifyAPIcontroller {
 //    	  // if user is auth, will update the main page 
 //    	  System.out.println("253 role "+session.getAttribute("role") );
 //    	  System.out.println("254 role "+session.getAttribute("role").getClass());
-//    	  String role = (String)session.getAttribute("role");
-//    	  System.out.println(role.contains("auth"));
+    	  String role = (String)session.getAttribute("role");
+    	  System.out.println(role.contains("auth"));
 //    	  if (role.contains("auth")) {
     	  System.out.println("role"+session.getAttribute("role") );
     
     	 // to do !!!!!!
-    	//  session.setAttribute("AuthList",cdao.getAlbums("0qtsgtarmv1zbif195n1df6tu"));
+    	  session.setAttribute("AuthList",cdao.getAlbums("0qtsgtarmv1zbif195n1df6tu"));
    
     	 // System.out.println("auth's album" + session.getAttribute("AuthList"));
-//    	  }
+   	//  }
 
 //    	     // send over to our form
     	     return "addDBsuccess";
@@ -329,12 +330,12 @@ public class SpotifyAPIcontroller {
     		adao.ReduceTime(theId);
     	}
     	String role = (String)session.getAttribute("role");
-//    	if (role.contains("auth")) {
-//    		 System.out.println("role"+session.getAttribute("role") );
-//    		
-//    	  session.setAttribute("AuthList",cdao.getAlbums("0qtsgtarmv1zbif195n1df6tu"));
-//    	  System.out.println("auth's album" + session.getAttribute("AuthList"));
-//    	  }
+    	//if (role.contains("auth")) {
+    		 System.out.println("role"+session.getAttribute("role") );
+    		
+    	  session.setAttribute("AuthList",cdao.getAlbums("0qtsgtarmv1zbif195n1df6tu"));
+    	  System.out.println("auth's album" + session.getAttribute("AuthList"));
+    //	  }
 //    	
     	//DAO.close();
     	response.sendRedirect("http://localhost:8080/Covertify/album/readAlbums");
