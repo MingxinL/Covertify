@@ -76,18 +76,20 @@ public class SpotifyAPIcontroller {
        CustomerDAO cDao = new CustomerDAO();
        Customer tempCustomer = null;
        if (!cDao.Exist(currUser.getId())){
+    	   System.out.println("!cDao.Exist(currUser.getId())");
         tempCustomer = new Customer(currUser.getId(), currUser.getDisplayName(), currUser.getImages()[0].getUrl());
         tempCustomer.setRole("auth");
         
         cDao.saveCustomer(tempCustomer);
-        DAO.close();
-       }
-       String role = cDao.getCustomers(currUser.getId()).getRole();
+       } 
+       	String role = cDao.getCustomers(currUser.getId()).getRole();
+       	System.out.println("role"+ role);
+      
+       	session.setAttribute("role", role);
        
-       session.setAttribute("role", role);
-       
-       session.setAttribute("AuthList",cDao.getAlbums("0qtsgtarmv1zbif195n1df6tu"));
-   	
+       	//to do!!!!!!!!!
+       //	session.setAttribute("AuthList",cDao.getAlbums("0qtsgtarmv1zbif195n1df6tu"));
+   
        
        return new ModelAndView("mainPage");
     }
@@ -207,7 +209,7 @@ public class SpotifyAPIcontroller {
    
     	modelAndView.addObject("AuthList",cdao.getAlbums(customerId));
     	modelAndView.setViewName( "mainPage");
-    	DAO.close();
+    	//DAO.close();
     	
     	return modelAndView;
     }
@@ -226,7 +228,7 @@ public class SpotifyAPIcontroller {
     	  Album tempAlbum = null;
 
     	  if (!adao.Exist(theId)) {
-    	 
+    		 System.out.println("!adao.Exist(theId)");
     	   tempAlbum = new Album(theId,theName,theImage,0,thePreUrl);
     	   adao.saveAlbums(tempAlbum);
     	  }
@@ -240,8 +242,9 @@ public class SpotifyAPIcontroller {
     	  
     	  // check if the customers have add album before        
     	  boolean hasAddBefore = false;
-    	  System.out.println("\t\tREAD--tempCustomer.getAlbums()\n" + tempCustomer.getAlbums());
-    	  for(Album album : tempCustomer.getAlbums()) {
+    	  System.out.println("row 245 " + cdao.getAlbums(customerId));
+    	  //System.out.println("\t\tREAD--tempCustomer.getAlbums()\n" + tempCustomer.getAlbums());
+    	  for(Album album : cdao.getAlbums(customerId)) {
     		  System.out.println("album.getId()--" + album.getId());
     		  System.out.println("        theId--" + theId);
     	   if (album.getId()==theId) {
@@ -251,13 +254,15 @@ public class SpotifyAPIcontroller {
     	  }
     	  if (!hasAddBefore) {
     	   // add customers to the album
+    		System.out.println("!hasAddBefore");
     	   tempAlbum = adao.getAlbums(theId);
+    	   //tempAlbum.addCustomer(tempCustomer);
     	   adao.addCustomer(tempAlbum, tempCustomer);
     	   
-    	   adao.AddTime(theId); 
+    	   adao.AddTime(tempAlbum); 
     	  } 
     	  
-    	  DAO.close();
+    	  //DAO.close();
     	  
 //    	  // if user is auth, will update the main page 
 //    	  System.out.println("253 role "+session.getAttribute("role") );
@@ -266,17 +271,18 @@ public class SpotifyAPIcontroller {
 //    	  System.out.println(role.contains("auth"));
 //    	  if (role.contains("auth")) {
     	  System.out.println("role"+session.getAttribute("role") );
-    		
-    	  session.setAttribute("AuthList",cdao.getAlbums("0qtsgtarmv1zbif195n1df6tu"));
-    	 // DAO.close();
-    	  System.out.println("auth's album" + session.getAttribute("AuthList"));
+    
+    	 // to do !!!!!!
+    	//  session.setAttribute("AuthList",cdao.getAlbums("0qtsgtarmv1zbif195n1df6tu"));
+   
+    	 // System.out.println("auth's album" + session.getAttribute("AuthList"));
 //    	  }
 
 //    	     // send over to our form
     	     return "addDBsuccess";
     }
-    
-    
+//    
+//    
     @GetMapping("album/readAlbums") 
     public ModelAndView readAlbum(HttpServletRequest request){
     	HttpSession session = request.getSession();
@@ -291,12 +297,12 @@ public class SpotifyAPIcontroller {
     		System.out.println("\t\tmodel contains albumList:" + modelAndView.getModel());
     		System.out.println("\t\talbumList:" + modelAndView.getModel().get("albumList"));
     	modelAndView.setViewName( "CustomerAlbum");
-    	DAO.close();
+    	//DAO.close();
     	return modelAndView;
     }
-    
-    
-    
+//    
+//    
+//    
     @GetMapping("album/delete") 
     public void deleteAlbum(@RequestParam("albumId") String theId, HttpServletRequest request, HttpServletResponse response) throws IOException{
     	HttpSession session = request.getSession();
@@ -307,11 +313,17 @@ public class SpotifyAPIcontroller {
     	
     	CustomerDAO cdao = new CustomerDAO();
     	AlbumDAO adao = new AlbumDAO();
-    	cdao.deleteAlbums (customerId, theId);
+    	Customer customer = cdao.getCustomers(customerId);
+    	Album  album = adao.getAlbums(theId);
+    	System.out.println("318 line" + customer.getName());
+    	System.out.println("319 line" + album.getName());
     	
-    	DAO.close();
+    	
+    	adao.deleteAlbums(album, customer);
+    	
+    	System.out.println("line 321  ");
  
-    	if (adao.getAlbums(theId).getTime() <= 1) {
+    	if (album.getTime() <= 1) {
     		adao.deleteAlbum(theId);
     	} else {
     		adao.ReduceTime(theId);
@@ -324,7 +336,7 @@ public class SpotifyAPIcontroller {
 //    	  System.out.println("auth's album" + session.getAttribute("AuthList"));
 //    	  }
 //    	
-    	DAO.close();
+    	//DAO.close();
     	response.sendRedirect("http://localhost:8080/Covertify/album/readAlbums");
     	
    
@@ -339,42 +351,42 @@ public class SpotifyAPIcontroller {
 //			e.printStackTrace();
 //		}
     }
-    
-    
-    
-    @GetMapping("auth/delete") 
-    public String AuthdeleteAlbum(@RequestParam("albumId") String theId, HttpServletRequest request, HttpServletResponse response) throws IOException{
-    	HttpSession session = request.getSession();
-    	User user = (User) session.getAttribute("user");
-//    	String customerId = "0qtsgtarmv1zbif195n1df6tu"; // Liang
-//    	String customerId = "21z5ocxxaci7ehx26cob7lhey"; // Jiao
-    	String customerId = user.getId();
-    	
-    	CustomerDAO cdao = new CustomerDAO();
-    	AlbumDAO adao = new AlbumDAO();
-    	cdao.deleteAlbums (customerId, theId);
-    	
-    	DAO.close();
- 
-    	if (adao.getAlbums(theId).getTime() <= 1) {
-    		adao.deleteAlbum(theId);
-    	} else {
-    		adao.ReduceTime(theId);
-    	}
-    	String role = (String)session.getAttribute("role");
-    	 
-    	System.out.println("role"+session.getAttribute("role") );
-    		
-    	session.setAttribute("AuthList",cdao.getAlbums("0qtsgtarmv1zbif195n1df6tu"));
-    	System.out.println("auth's album" + session.getAttribute("AuthList"));
-    	 
-    	
-    	DAO.close();
-    	return "mainPage";
-    	
-   
-
-    }
+//    
+//    
+//    
+//    @GetMapping("auth/delete") 
+//    public String AuthdeleteAlbum(@RequestParam("albumId") String theId, HttpServletRequest request, HttpServletResponse response) throws IOException{
+//    	HttpSession session = request.getSession();
+//    	User user = (User) session.getAttribute("user");
+////    	String customerId = "0qtsgtarmv1zbif195n1df6tu"; // Liang
+////    	String customerId = "21z5ocxxaci7ehx26cob7lhey"; // Jiao
+//    	String customerId = user.getId();
+//    	
+//    	CustomerDAO cdao = new CustomerDAO();
+//    	AlbumDAO adao = new AlbumDAO();
+//    	cdao.deleteAlbums (customerId, theId);
+//    	
+//    	//DAO.close();
+// 
+//    	if (adao.getAlbums(theId).getTime() <= 1) {
+//    		adao.deleteAlbum(theId);
+//    	} else {
+//    		adao.ReduceTime(theId);
+//    	}
+//    	String role = (String)session.getAttribute("role");
+//    	 
+//    	System.out.println("role"+session.getAttribute("role") );
+//    		
+//    	session.setAttribute("AuthList",cdao.getAlbums("0qtsgtarmv1zbif195n1df6tu"));
+//    	System.out.println("auth's album" + session.getAttribute("AuthList"));
+//    	 
+//    	
+//    	//DAO.close();
+//    	return "mainPage";
+//    	
+//   
+//
+//    }
     
     @RequestMapping("/logout")
     public void logout(HttpServletRequest request,  HttpServletResponse response, HttpSession httpsession) {

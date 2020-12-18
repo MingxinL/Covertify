@@ -53,7 +53,7 @@ public class Customer {
 		this.image = image;
 	}
 
-	@ManyToMany(fetch=FetchType.LAZY,
+	@ManyToMany(fetch=FetchType.EAGER,
 			cascade= {CascadeType.PERSIST, CascadeType.MERGE,
 			 CascadeType.DETACH, CascadeType.REFRESH})
 	@JoinTable(

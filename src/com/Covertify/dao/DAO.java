@@ -8,58 +8,31 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 
-public abstract class DAO {
+public class DAO {
 	
-	private static final Logger log = Logger.getAnonymousLogger();
-    
-	private static final ThreadLocal<Session> sessionThread = new ThreadLocal<Session>();
-    
-	private static final SessionFactory sessionFactory = new Configuration().configure("hibernate.cfg.xml").buildSessionFactory();
+	private static final SessionFactory sf = new Configuration().configure("hibernate.cfg.xml").buildSessionFactory();
+    private Session session = null;
 
-    protected DAO() {
-    }
-
-    public static Session getSession()
-    {
-        Session session = sessionThread.get();
-        
-        if (session == null)
-        {
-        	System.out.println("-------session == null");
-            session = sessionFactory.openSession();
-            DAO.sessionThread.set(session);
-        } else {
-        	System.out.println("-------session != null");
+    public Session getSession() {
+        if (session == null || !session.isOpen()) {
+            session = sf.openSession();
         }
-        
         return session;
     }
 
-    protected void begin() {
+    public void beginTransaction() {
         getSession().beginTransaction();
     }
 
-    protected void commit() {
+    public void commit() {
         getSession().getTransaction().commit();
     }
 
-    protected void rollback() {
-        try {
-            getSession().getTransaction().rollback();
-        } catch (HibernateException e) {
-            log.log(Level.WARNING, "Cannot rollback", e);
-        }
-        try {
-            getSession().close();
-        } catch (HibernateException e) {
-            log.log(Level.WARNING, "Cannot close", e);
-        }
-        DAO.sessionThread.set(null);
+    public void close() {
+        getSession().close();
     }
 
-    public static void close() {
-    	System.out.println("-------session close!!!");
-        getSession().close();
-        DAO.sessionThread.set(null);
+    public void rollbackTransaction() {
+        getSession().getTransaction().rollback();
     }
 }

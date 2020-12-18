@@ -75,7 +75,7 @@ public class Album {
 
 
 
-	@ManyToMany(fetch=FetchType.LAZY,
+	@ManyToMany(fetch=FetchType.EAGER,
 			cascade= {CascadeType.PERSIST, CascadeType.MERGE,
 			 CascadeType.DETACH, CascadeType.REFRESH})
 	@JoinTable(
@@ -124,10 +124,25 @@ public class Album {
 		this.customers = customers;
 	}
 	
-	public void deleteCustomers(Customer theCustomer) {
-		if (customers.contains(theCustomer)) {
-			customers.remove(theCustomer);
+	public void deleteCustomers(String customerId) {
+		System.out.println("begin 128 delete");
+		System.out.println("customer's size" + customers.size());
+		for(Customer cust: customers) {
+			System.out.println("cust id "+ cust.getId());
+			System.out.println("132 customerId"+ customerId);
+			if (cust.getId().equals(customerId)) {
+				System.out.println("131 remove contains theCustomer");
+				customers.remove(cust);
+				break;
+			}
 		}
+//		if (customers.contains(theCustomer)) {
+//			
+//			customers.remove(theCustomer);
+//			System.out.println("133 delete");
+//			System.out.println("134"+customers.contains(theCustomer));
+//		}
+		
 	}
 
 	// add a convenience method
